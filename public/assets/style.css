@@ -91,9 +91,10 @@ body.leaving{opacity:0}
 .rule{display:flex;align-items:center;gap:.9rem;width:min(16rem,70%);margin:1.3rem auto .4rem}
 .rule::before,.rule::after{content:"";flex:1;height:1px;background:var(--hair)}
 .rule span{width:6px;height:6px;border:1px solid var(--quill);transform:rotate(45deg);opacity:.6}
-.cartel .desc{font-size:1.14rem;line-height:1.7;text-align:left;text-wrap:pretty;margin-top:.6rem;max-width:62ch}
-.cartel .price{width:min(22rem,100%);margin-top:1.6rem}
-.cartel .price .val{font-size:1.32rem}
+.cartel .desc{font-size:1.14rem;line-height:1.7;text-align:center;text-wrap:pretty;margin-top:.6rem;max-width:62ch}
+.cartel .price{flex-direction:column;align-items:center;gap:.15rem;margin-top:1.6rem}
+.cartel .price .lead{display:none}
+.cartel .price .val{font-size:1.32rem;justify-content:center}
 .back{margin:0;text-align:center}
 .back a{color:var(--ink-soft);text-decoration:none;font-size:1rem;letter-spacing:.2em;font-variant-caps:all-small-caps;transition:color .3s}
 .back a:hover{color:var(--ink)}
