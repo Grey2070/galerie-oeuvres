@@ -280,6 +280,30 @@
   function fitFont(x, text, family, size, maxW, style) {
     do { x.font = (style || '') + ' ' + size + 'px ' + family; size -= 2; } while (x.measureText(text).width > maxW && size > 24);
   }
+  // Square of modules left blank in the middle of the code: about a quarter of
+  // its width (≈7 % of its area), well inside what level H can recover.
+  function qrHole(m) {
+    var n = Math.round(m * 0.25);
+    if ((m - n) % 2) n += 1;
+    var a = (m - n) / 2;
+    return { a: a, b: a + n };
+  }
+  // The catalogue number set in the blank square, framed like a small cartel.
+  function drawBadge(x, label, bx, by, side, cell) {
+    var inset = Math.round(cell * 0.6), cx = bx + side / 2;
+    x.fillStyle = '#ffffff'; x.fillRect(bx, by, side, side);
+    x.strokeStyle = '#23304c'; x.lineWidth = Math.max(2, Math.round(cell / 4));
+    x.strokeRect(bx + inset, by + inset, side - 2 * inset, side - 2 * inset);
+    var inner = side - 2 * inset;
+    x.fillStyle = '#6c6762'; x.textAlign = 'center'; x.textBaseline = 'alphabetic';
+    var small = Math.round(inner * 0.2);
+    x.font = '500 ' + small + 'px "EB Garamond", Garamond, serif';
+    x.fillText('N°', cx, by + inset + inner * 0.3);
+    x.fillStyle = '#1c1b1f';
+    var size = Math.round(inner * 0.56);
+    do { x.font = '500 ' + size + 'px "EB Garamond", Garamond, serif'; size -= 2; } while (x.measureText(label).width > inner * 0.84 && size > 12);
+    x.fillText(label, cx, by + inset + inner * 0.82);
+  }
   // A printable cartel: catalogue number, title, artist, QR code.
   function drawCartel(w) {
     var W = 1000, H = 1300, c = document.createElement('canvas'), x = c.getContext('2d');
@@ -294,10 +318,16 @@
     x.fillText(w.title, W / 2, 220);
     var y = 226;
     if (w.artist) { x.fillStyle = '#1c1b1f'; fitFont(x, w.artist, '"EB Garamond", Garamond, serif', 36, 860, 'italic'); x.fillText(w.artist, W / 2, 280); y = 280; }
-    var q = window.qrcode(0, 'M'); q.addData(qrUrl(w)); q.make();
+    // Level H error correction lets the centre carry the catalogue number and still scan.
+    var q = window.qrcode(0, 'H'); q.addData(qrUrl(w)); q.make();
     var m = q.getModuleCount(), size = 600, cell = Math.floor(size / m), qs = cell * m, ox = Math.round((W - qs) / 2), oy = y + 50 + Math.round((size - qs) / 2);
+    var hole = qrHole(m);
     x.fillStyle = '#1c1b1f';
-    for (var r = 0; r < m; r++) for (var k = 0; k < m; k++) if (q.isDark(r, k)) x.fillRect(ox + k * cell, oy + r * cell, cell, cell);
+    for (var r = 0; r < m; r++) for (var k = 0; k < m; k++) {
+      if (r >= hole.a && r < hole.b && k >= hole.a && k < hole.b) continue;
+      if (q.isDark(r, k)) x.fillRect(ox + k * cell, oy + r * cell, cell, cell);
+    }
+    drawBadge(x, String(pad(w.n)), ox + hole.a * cell, oy + hole.a * cell, (hole.b - hole.a) * cell, cell);
     var ly = y + 50 + size + 64;
     x.strokeStyle = '#e9e6e1'; x.lineWidth = 2;
     x.beginPath(); x.moveTo(W / 2 - 200, ly); x.lineTo(W / 2 - 18, ly); x.moveTo(W / 2 + 18, ly); x.lineTo(W / 2 + 200, ly); x.stroke();
